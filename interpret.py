@@ -31,6 +31,8 @@ class Interpreter:
                 case "store":
                     log("(store)")
                     self.handle_store(b,log)
+                case "ifz":
+                    log("(ifz)")
                 case _:
                     log("unsupported operation",b)
                     return None
@@ -58,6 +60,7 @@ class Interpreter:
                 else:
                     self.mstack.pop()
                     self.mstack.append((lv, os, (am_,i + 1)))
+            
             case _:
                 log("unsupported operation",b)
                 return None
