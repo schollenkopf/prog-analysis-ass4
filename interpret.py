@@ -31,8 +31,9 @@ class Interpreter:
                 case "store":
                     log("(store)")
                     self.handle_store(b,log)
-                case "ifz":
-                    log("(ifz)")
+                # case "ifz":
+                #     log("(ifz)")
+                    
                 case _:
                     log("unsupported operation",b)
                     return None
