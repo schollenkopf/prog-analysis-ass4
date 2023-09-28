@@ -11,7 +11,7 @@ class AbstractionMain:
     def execute(self, log):
         for i in range(10):
             log("----------------------------------------------")
-            log("Round: ", i, ", nr of states: ", len(self.states))
+            log("Round: ", i + 1, ", nr of states: ", len(self.states))
             log("States: ", self.states)
             log(
                 "ErrorStates: ",
@@ -72,6 +72,20 @@ class AbstractionMain:
             if nextStates != []:
                 self.states = nextStates
                 # self.states.append(nextStates)
+            else:
+                log("----------------------------------------------")
+                log(
+                    "Finished after: ",
+                    i + 1,
+                    "rounds, nr of final states: ",
+                    len(self.states),
+                )
+                log("States: ", self.states)
+                log(
+                    "ErrorStates: ",
+                    self.error_states,
+                )
+                break
 
     def handle_return(self, b, s, log):
         return (s, [])
