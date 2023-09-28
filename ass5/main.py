@@ -15,7 +15,7 @@ cases = [
 
 for case in cases:
     print("---", case, "---")
-    ci = AbstractionMain(case, SignAbstraction())
+    ci = AbstractionMain(case, SignAbstraction(), {0: "+", 1: "-"})
     res = ci.execute(print)
     print(res)
     print("--- done ---")

@@ -88,7 +88,7 @@ class AbstractionMain:
                 break
 
     def handle_return(self, b, s, log):
-        return (s, [])
+        return [], []
 
     def handle_load(self, b, state, log):
         (lv, os, (am_, i)), memory = state
