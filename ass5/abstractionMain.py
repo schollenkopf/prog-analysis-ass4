@@ -5,36 +5,39 @@ from filereader import find_method
 class AbstractionMain:
     def __init__(self, am, abstraction: Abstraction, inital_memory={}):
         self.states = [(([], [], (am, 0)), inital_memory)]
-        self.error_states = [(str, ())]
+        self.error_states = []
         self.abstraction = abstraction
 
     def execute(self, log):
         for i in range(10):
-            log("->", self.states, self.error_states, end="")
-            for s, memory in self.states:
-                nextStates = []
-
-                (lv, os, (am_, i)) = s
+            log("----------------------------------------------")
+            log("Round: ", i, ", nr of states: ", len(self.states))
+            log("States: ", self.states)
+            log(
+                "ErrorStates: ",
+                self.error_states,
+            )
+            nextStates = []
+            errorStates = []
+            for state in self.states:
+                s = []
+                es = []
+                log("->", state, end="")
+                (lv, os, (am_, i)), memory = state
                 b = find_method(am_)["code"]["bytecode"][i]
                 match (b["opr"]):
                     case "return":
                         log("(return)")
-                        states, errorstates = self.handle_return(b, s, log)
-                        nextStates.append(states)
-                        self.error_states.append(errorstates)
+                        s, es = self.handle_return(b, state, log)
                     # case "push":
                     #     log("(push)")
                     #     self.handle_push(b, log)
                     case "load":
                         log("(load)")
-                        self.handle_load(b, s, memory, log)
+                        s, es = self.handle_load(b, state, log)
                     case "binary":
                         log("(binary)")
-                        nextStacks, errorStacks = self.abstraction.handle_binary(b, s)
-                        for x in nextStacks:
-                            nextStates.append((x, memory))
-                        for xe in errorStacks:
-                            self.error_states.append(xe + memory)
+                        s, es = self.abstraction.handle_binary(b, state)
                     # case "if":
                     #     log("(if)")
                     #     self.handle_if(b, log)
@@ -59,13 +62,22 @@ class AbstractionMain:
                     case _:
                         log("unsupported operation", b)
                         return None
-                self.states.append(nextStates)
+                if s != []:
+                    nextStates += s
+                if es != []:
+                    errorStates += es
+            if errorStates != []:
+                self.error_states = errorStates
+                # self.error_states.append(errorStates)
+            if nextStates != []:
+                self.states = nextStates
+                # self.states.append(nextStates)
 
     def handle_return(self, b, s, log):
         return (s, [])
 
-    def handle_load(self, b, s, memory, log):
-        (lv, os, (am_, i)) = s
+    def handle_load(self, b, state, log):
+        (lv, os, (am_, i)), memory = state
         if b["index"] not in memory.keys():
-            return [], ["Nullptr", (lv, os, (am_, i + 1))]
-        return [(lv, os + [memory[b["index"]]], (am_, i + 1))], []
+            return [], ["Nullptr", ((lv, os, (am_, i + 1)), memory)]
+        return [((lv, os + [memory[b["index"]]], (am_, i + 1)), memory)], []
