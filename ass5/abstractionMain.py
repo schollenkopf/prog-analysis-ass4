@@ -29,27 +29,27 @@ class AbstractionMain:
                     case "return":
                         log("(return)")
                         s, es = self.handle_return(b, state, log)
-                    # case "push":
-                    #     log("(push)")
-                    #     self.handle_push(b, log)
+                    case "push":
+                        log("(push)")
+                        s, es = self.abstraction.handle_push(b, state, log)
                     case "load":
                         log("(load)")
                         s, es = self.handle_load(b, state, log)
                     case "binary":
                         log("(binary)")
-                        s, es = self.abstraction.handle_binary(b, state)
-                    # case "if":
-                    #     log("(if)")
-                    #     self.handle_if(b, log)
-                    # case "store":
-                    #     log("(store)")
-                    #     self.handle_store(b, log)
-                    # case "ifz":
-                    #     log("(ifz)")
-                    #     self.handle_ifz(b, log)
-                    # case "incr":
-                    #     log("(incr)")
-                    #     self.handle_incr(b, log)
+                        s, es = self.abstraction.handle_binary(b, state, log)
+                    case "if":
+                        log("(if)")
+                        s, es = self.abstraction.handle_if(b, state, log)
+                    case "store":
+                        log("(store)")
+                        s, es = self.handle_store(b, state, log)
+                    case "ifz":
+                        log("(ifz)")
+                        s, es = self.abstraction.handle_ifz(b, state, log)
+                    case "incr":
+                        log("(incr)")
+                        s, es = self.abstraction.handle_incr(b, state, log)
                     # case "goto":
                     #     log("(goto)")
                     #     self.handle_goto(b, log)
@@ -87,7 +87,9 @@ class AbstractionMain:
                 )
                 break
 
-    def handle_return(self, b, s, log):
+    def handle_return(self, b, state, log):
+        (lv, os, (am_, i)), memory = state
+        log("RETURN: ", os.pop())
         return [], []
 
     def handle_load(self, b, state, log):
@@ -95,3 +97,13 @@ class AbstractionMain:
         if b["index"] not in memory.keys():
             return [], ["Nullptr", ((lv, os, (am_, i + 1)), memory)]
         return [((lv, os + [memory[b["index"]]], (am_, i + 1)), memory)], []
+
+    def handle_store(self, b, state, log) -> ([()], [(str, ())]):
+        (lv, os, (am_, i)), memory = state
+        match b["type"]:
+            case "int":
+                memory[b["index"]] = os.pop()
+                return [((lv, os, (am_, i + 1)), memory)], []
+            case _:
+                log("unsupported operation", b)
+                return None
