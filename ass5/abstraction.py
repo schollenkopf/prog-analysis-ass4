@@ -48,7 +48,7 @@ class SignAbstraction(Abstraction):
                 if val1 == "0" or val2 == "0":
                     return ([((lv, os + ["0"], (am_, i + 1)), memory)], [])
                 elif val1 == "-" or val2 == "-":
-                    return ([((lv, os + ["-"], (am_, i + 1)), memory)], [])
+                    return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
                 else:
                     return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
             case _:
