@@ -9,7 +9,7 @@ class AbstractionMain:
         self.abstraction = abstraction
 
     def execute(self, log):
-        for i in range(10):
+        for i in range(30):
             log("----------------------------------------------")
             log("Round: ", i + 1, ", nr of states: ", len(self.states))
             log("States: ", self.states)
@@ -50,9 +50,9 @@ class AbstractionMain:
                     case "incr":
                         log("(incr)")
                         s, es = self.abstraction.handle_incr(b, state, log)
-                    # case "goto":
-                    #     log("(goto)")
-                    #     self.handle_goto(b, log)
+                    case "goto":
+                        log("(goto)")
+                        s, es = self.handle_goto(b, state, log)
                     # case "get":
                     #     log("(get)")
                     #     self.handle_get(b, log)
@@ -107,3 +107,7 @@ class AbstractionMain:
             case _:
                 log("unsupported operation", b)
                 return None
+
+    def handle_goto(self, b, state, log):
+        (lv, os, (am_, i)), memory = state
+        return [((lv, os, (am_, b["target"])), memory)], []

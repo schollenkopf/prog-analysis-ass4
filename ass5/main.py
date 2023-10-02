@@ -1,4 +1,4 @@
-from abstraction import SignAbstraction
+from abstraction import RangeAbstraction, SignAbstraction
 from abstractionMain import AbstractionMain
 
 
@@ -15,7 +15,8 @@ cases = [
 
 for case in cases:
     print("---", case, "---")
-    ci = AbstractionMain(case, SignAbstraction(), {0: "+", 1: "+"})
+    # ci = AbstractionMain(case, SignAbstraction(), {0: "+", 1: "+"})
+    ci = AbstractionMain(case, RangeAbstraction(), {0: (1, 4), 1: (1, 3)})
     res = ci.execute(print)
     print(res)
     print("--- done ---")
