@@ -48,72 +48,82 @@ class SignAbstraction(Abstraction):
 
         match b["operant"]:
             case "add":
-                if val1 == "+" and val2 == "+":
-                    return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
-                elif (val1 == "+" and val2 != "-") or (val1 != "-" and val2 == "+"):
-                    return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
-                elif (val1 == "-" and val2 != "+") or (val1 != "+" and val2 == "-"):
-                    return ([((lv, os + ["-"], (am_, i + 1)), memory)], [])
-                elif val1 == "0" and val2 == "0":
-                    return ([((lv, os + ["0"], (am_, i + 1)), memory)], [])
+                ret_set = {}
+                if "+" in val1 and "+" in val2:
+                    ret_set.union({"+"})
+                elif ("+" in val1 and not "-" in val2) or (
+                    not "-" in val1 and "+" in val2
+                ):
+                    ret_set.union({"+"})
+                elif ("-" in val1 and not "+" in val2) or (
+                    not "+" in val1 and "-" in val2
+                ):
+                    ret_set.union({"-"})
+                elif "0" in val1 and "0" in val2:
+                    ret_set.union({"0"})
                 else:
-                    return (
-                        [
-                            ((lv, os.copy() + ["+"], (am_, i + 1)), memory.copy()),
-                            ((lv, os.copy() + ["0"], (am_, i + 1)), memory.copy()),
-                            ((lv, os.copy() + ["-"], (am_, i + 1)), memory.copy()),
-                        ],
-                        [],
-                    )
+                    ret_set.union({"0", "-", "+"})
+                return (lv, os + [ret_set], (am_, i + 1)), memory
+
             case "mul":
-                if val1 == "0" or val2 == "0":
-                    return ([((lv, os + ["0"], (am_, i + 1)), memory)], [])
-                elif val1 == "-" or val2 == "-":
-                    return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
+                ret_set = {}
+                if "0" in val1 or "0" in val2:
+                    ret_set.union({"0"})
+
+                elif "-" in val1 ^ "-" in val2:
+                    ret_set.union({"-"})
                 else:
-                    return ([((lv, os + ["+"], (am_, i + 1)), memory)], [])
+                    ret_set.union({"+"})
+                return ([((lv, os + [ret_set], (am_, i + 1)), memory)], [])
             case _:
-                return ([], [("Unsupported", ((lv, os, (am_, i)), memory))])
+                raise Exception("Unsupported", b)
 
     def handle_if(self, b, state, log) -> ([()], [(str, ())]):
         (lv, os, (am_, i)), memory = state
         match b["condition"]:
             case "gt":
-                val2 = os[-2]
-                val1 = os[-1]
-                if val2 == "+":
-                    if val1 == "+":
-                        return (
-                            [
-                                ((lv, os.copy(), (am_, i + 1)), memory.copy()),
-                                ((lv, os.copy(), (am_, b["target"])), memory.copy()),
-                            ],
-                            [],
-                        )
+                # val2 > val1
+                val1 = os.pop()
+                val2 = os.pop()
+                next = False
+                target = False
+                if "+" in val2:
+                    if "+" in val1:
+                        # Here we can return the states directly because it already allows for both target and next state to be taken
+                        return [
+                            ((lv, os.copy(), (am_, i + 1)), memory.copy()),
+                            ((lv, os.copy(), (am_, b["target"])), memory.copy()),
+                        ]
+
                     else:
-                        return ([((lv, os, (am_, i + 1)), memory)], [])
-                elif val2 == "0":
-                    if val1 == "+":
-                        return ([((lv, os, (am_, b["target"])), memory)], [])
-                    elif val1 == "-":
-                        return ([((lv, os, (am_, i + 1)), memory)], [])
+                        next = True
+                if "0" in val2:
+                    if "+" in val1:
+                        target = True
+                    elif "-" in val1:
+                        next = True
                     else:
-                        return ([((lv, os, (am_, b["target"])), memory)], [])
-                else:
-                    if val1 == "-":
-                        return (
-                            [
-                                ((lv, os.copy(), (am_, i + 1)), memory.copy()),
-                                ((lv, os.copy(), (am_, b["target"])), memory.copy()),
-                            ],
-                            [],
-                        )
+                        target = True
+                if "-" in val2:
+                    if "-" in val1:
+                        return [
+                            ((lv, os.copy(), (am_, i + 1)), memory.copy()),
+                            ((lv, os.copy(), (am_, b["target"])), memory.copy()),
+                        ]
+
                     else:
-                        return ([((lv, os, (am_, b["target"])), memory)], [])
+                        target = True
+                ret_states = []
+                if next:
+                    ret_states.append(((lv, os.copy(), (am_, i + 1)), memory.copy()))
+                if target:
+                    ret_states.append(
+                        ((lv, os.copy(), (am_, b["target"])), memory.copy())
+                    )
+                return ret_states
 
             case _:
-                log("unsupported operation", b)
-                return ([], [("Unsupported", ((lv, os, (am_, i)), memory))])
+                raise Exception("Unsupported", b)
 
     def handle_push(self, b, state, log):
         (lv, os, (am_, i)), memory = state

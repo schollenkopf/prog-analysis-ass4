@@ -25,28 +25,28 @@ class AbstractionMain:
                     states = self.handle_return(b, self.state_map(pc), log)
                 case "push":
                     log("(push)")
-                    states = self.abstraction.handle_push(b, state, log)
+                    states = self.abstraction.handle_push(b, self.state_map(pc), log)
                 case "load":
                     log("(load)")
                     states = self.handle_load(b, self.state_map(pc), log)
                 case "binary":
                     log("(binary)")
-                    states = self.abstraction.handle_binary(b, state, log)
+                    states = self.abstraction.handle_binary(b, self.state_map(pc), log)
                 case "if":
                     log("(if)")
-                    states = self.abstraction.handle_if(b, state, log)
+                    states = self.abstraction.handle_if(b, self.state_map(pc), log)
                 case "store":
                     log("(store)")
-                    states = self.handle_store(b, state, log)
+                    states = self.handle_store(b, self.state_map(pc), log)
                 case "ifz":
                     log("(ifz)")
-                    states = self.abstraction.handle_ifz(b, state, log)
+                    states = self.abstraction.handle_ifz(b, self.state_map(pc), log)
                 case "incr":
                     log("(incr)")
-                    states = self.abstraction.handle_incr(b, state, log)
+                    states = self.abstraction.handle_incr(b, self.state_map(pc), log)
                 case "goto":
                     log("(goto)")
-                    states = self.handle_goto(b, state, log)
+                    states = self.handle_goto(b, self.state_map(pc), log)
                 # case "get":
                 #     log("(get)")
                 #     self.handle_get(b, log)
@@ -67,7 +67,7 @@ class AbstractionMain:
     def handle_return(self, b, state, log):
         (lv, os, (am_, i)), memory = state
         log("RETURN: ", os.pop())
-        return [], []
+        return []
 
     def handle_load(self, b, state, log):
         (lv, os, (am_, i)), memory = state
@@ -80,11 +80,11 @@ class AbstractionMain:
         match b["type"]:
             case "int":
                 memory[b["index"]] = os.pop()
-                return [((lv, os, (am_, i + 1)), memory)], []
+                return [((lv, os, (am_, i + 1)), memory)]
             case _:
                 log("unsupported operation", b)
                 return None
 
     def handle_goto(self, b, state, log):
         (lv, os, (am_, i)), memory = state
-        return [((lv, os, (am_, b["target"])), memory)], []
+        return [((lv, os, (am_, b["target"])), memory)]
