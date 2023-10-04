@@ -3,12 +3,13 @@ from filereader import find_method
 
 
 class AbstractionMain:
-    def __init__(self, am, abstraction: Abstraction, inital_memory={}):
+    def __init__(self, am, abstraction: Abstraction, inital_memory={}): # am is the case (method) we are considering, abstraction is the type
+        # of abstraction, and the initial_memory is empty
         self.state_map = {
             0: (([], [], (am, 0)), inital_memory)
-        }  # key is PC and value is the state
+        }  # key is PC and value is the state --> (([], [], (am, 0)), inital_memory)
         self.work_queue = [0]
-        self.abstraction = abstraction
+        self.abstraction = abstraction # in this case could be RangeAbstraction()
 
     def execute(self, log):
         while len(self.work_queue) > 0:
