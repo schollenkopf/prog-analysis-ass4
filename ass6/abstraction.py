@@ -92,6 +92,32 @@ class SignAbstraction(Abstraction):
                 else:
                     ret_set = ret_set.union({"+"})
                 return [(lv, os + [ret_set], (am_, i + 1))]
+            case "sub":
+                if "+" in val2:
+                    val2.union({"-"})
+                    val2.remove("+")
+                if "-" in val2:
+                    val2.union({"+"})
+                    val2.remove("-")
+
+                ret_set = set()
+
+                if "+" in val1 and "+" in val2:
+                    ret_set = ret_set.union({"+"})
+                if ("+" in val1 and not "-" in val2) or (
+                    not "-" in val1 and "+" in val2
+                ):
+                    ret_set = ret_set.union({"+"})
+                if ("-" in val1 and not "+" in val2) or (
+                    not "+" in val1 and "-" in val2
+                ):
+                    ret_set = ret_set.union({"-"})
+                if "0" in val1 and "0" in val2:
+                    ret_set = ret_set.union({"0"})
+                if ("+" in val1 and "-" in val2) or ("-" in val1 and "+" in val2):
+                    ret_set = ret_set.union({"0", "-", "+"})
+                return [(lv, os + [ret_set], (am_, i + 1))]
+
             case _:
                 raise Exception("Unsupported", b)
 
@@ -223,7 +249,18 @@ class SignAbstraction(Abstraction):
                 if "+" in val1:
                     return_states.append((lv, os, (am_, i + 1)))
                 return return_states
-
+            case "ne":
+                val1 = os[-1]
+                if val1 is None:
+                    return [(lv, os, (am_, i + 1))]
+                return_states = []
+                if "0" in val1:
+                    return_states.append((lv, os, (am_, i + 1)))
+                if "-" in val1:
+                    return_states.append((lv, os, (am_, b["target"])))
+                if "+" in val1:
+                    return_states.append((lv, os, (am_, b["target"])))
+                return return_states
             case _:
                 raise Exception("Unsupported", b)
 

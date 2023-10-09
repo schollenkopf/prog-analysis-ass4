@@ -16,7 +16,7 @@ class AbstractionMain:
     def execute(self, log):
         while len(self.work_queue) > 0:
             log("----------------------------------------------")
-            log(self.state_map)
+            # log(self.state_map)
             pc = self.work_queue.pop()
             log("Looking at pc:", pc)
             log("With state", self.state_map[pc])
@@ -69,12 +69,18 @@ class AbstractionMain:
                     states = self.abstraction.handle_arraylength(
                         b, self.state_map[pc], log
                     )
-                # case "get":
-                #     log("(get)")
-                #     self.handle_get(b, log)
-                # case "invoke":
-                #     log("(invoke)")
-                #     self.handle_invoke(b, log)
+                case "get":
+                    log("(get)")
+                    states = self.handle_get(b, self.state_map[pc], log)
+                case "new":
+                    log("(new)")
+                    states = self.handle_new(b, self.state_map[pc], log)
+                case "dup":
+                    log("(dup)")
+                    states = self.handle_dup(b, self.state_map[pc], log)
+                case "invoke":
+                    log("(invoke)")
+                    states = self.handle_invoke(b, self.state_map[pc], log)
                 case _:
                     log("unsupported operation", b)
                     return None
@@ -102,6 +108,16 @@ class AbstractionMain:
         lv, os, (am_, i) = state
         return [(lv, os + [[None for _ in range(b["dim"])]], (am_, i + 1))]
 
+    def handle_dup(self, b, state, log) -> []:
+        lv, os, (am_, i) = state
+        return [(lv, os + [os[-1]], (am_, i + 1))]
+
+    def handle_new(self, b, state, log) -> []:
+        lv, os, (am_, i) = state
+        if b["class"] == "java/lang/AssertionError":
+            return [(lv, os + [AssertionError], (am_, i + 1))]
+        raise Exception("Unsupported", b)
+
     def handle_store(self, b, state, log) -> ([()], [(str, ())]):
         lv, os, (am_, i) = state
         match b["type"]:
@@ -117,3 +133,38 @@ class AbstractionMain:
     def handle_goto(self, b, state, log):
         lv, os, (am_, i) = state
         return [(lv, os, (am_, b["target"]))]
+
+    def handle_get(self, b, state, log):
+        lv, os, (am_, i) = state
+        value = getattr(JavaMethod, "get")(b["field"])
+        return [(lv, os + [value], (am_, i + 1))]
+
+    def handle_invoke(self, b, state, log):
+        lv, os, (am_, i) = state
+        args = []
+        for arg in b["method"]["args"]:
+            args.append(os.pop())
+        ref = os.pop()
+        method = ref[b["method"]["ref"]["name"]]
+        value = method(*args)
+        if b["method"]["returns"] is not None:
+            return [(lv, os + [value], (am_, i + 1))]
+        return [(lv, os, (am_, i + 1))]
+
+
+class JavaMethod:
+    @staticmethod
+    def get(field_dict):
+        valid_dict = {
+            "class": "java/lang/System",
+            "name": "out",
+            "type": {"kind": "class", "name": "java/io/PrintStream"},
+        }
+
+        return (
+            field_dict.get("type", {}).get("name") if field_dict == valid_dict else None
+        )
+
+    @staticmethod
+    def println(string):
+        print(string)

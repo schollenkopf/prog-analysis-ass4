@@ -15,7 +15,8 @@ cases = [
     # ("eu/bogoe/dtu/exceptional/Arrays", "alwaysThrows1")
     # ("eu/bogoe/dtu/exceptional/Arrays", "alwaysThrows2")
     # ("eu/bogoe/dtu/exceptional/Arrays", "alwaysThrows3")
-    ("eu/bogoe/dtu/exceptional/Arrays", "alwaysThrows4")
+    # ("eu/bogoe/dtu/exceptional/Arrays", "alwaysThrows4")
+    ("eu/bogoe/dtu/exceptional/Arrays", "dependsOnLattice1")
 ]
 
 for case in cases:
